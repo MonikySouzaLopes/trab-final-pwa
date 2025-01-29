@@ -4,29 +4,32 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PWA - Camera</title>
+    <title>PWA - Lista de Compras Inteligente</title>
     <link rel="stylesheet" href="/CSS/style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="/images/icon-256_ios.png">
     <link rel="icon" href="/images/camera_256.png" sizes="256x256">
     <meta name="theme-color" content="white">
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.ico">
+    <script type="module" src="js/main.js"></script>
+    <script src="js/db.js"></script>
 </head>
 <body>
-    <!-- Camera -->
+    <h1>Lista de Compras Inteligente 🛒</h1>
+    <input type="text" id="itemInput" placeholder="Adicionar item">
+    <button id="addItem">Adicionar Item</button>
+    <ul id="itemList"></ul>
+    
+    <!-- Camera para escanear códigos de barras -->
     <main id="camera">
-        <!-- Camera sensor (lente) -->
-        <canvas id="camera-sensor"></canvas>
-
-        <!-- Camera view (visualização) -->
         <video id="camera-view" autoplay playsinline></video>
-
-        <!-- Camera output -->
-        <img src="//:0" alt="" id="camera-output">
-
-        <!-- Camera botão de tirar foto -->
-        <button id="camera-trigger">Tirar foto</button>
+        <canvas id="camera-sensor"></canvas>
+        <img id="camera-output" alt="Imagem capturada" style="display:none;">
+        <button id="cameraButton">Ativar Câmera</button>
+        <button id="captureButton">Escanear Código</button>
     </main>
 
-    <script src="js/main.js" type="module"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
