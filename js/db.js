@@ -5,54 +5,64 @@ let db;
 async function createDB() {
     try {
         db = await openDB('shoppingDB', 1, {
-            upgrade(db, oldVersion, newVersion, transaction) {
-                switch (oldVersion) {
-                    case 0:
-                    case 1:
-                        const store = db.createObjectStore('shoppingList', {
-                            keyPath: 'id',
-                            autoIncrement: true
-                        });
-                        store.createIndex('name', 'name', { unique: false });
-                        console.log("Banco de dados de Lista de Compras criado!");
+            upgrade(db) {
+                if (!db.objectStoreNames.contains('shoppingList')) {
+                    const store = db.createObjectStore('shoppingList', {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    });
+                    store.createIndex('name', 'name', { unique: false });
+                    console.log("Banco de dados de Lista de Compras criado!");
                 }
             }
         });
         console.log("Banco de dados aberto.");
     } catch (e) {
-        console.log("Erro ao criar o banco de dados: " + e.message);
+        console.error("Erro ao criar o banco de dados:", e.message);
     }
 }
 
-window.addEventListener("DOMContentLoaded", async event => {
-    createDB();
-    document.getElementById("addItem").addEventListener("click", addData);
-    document.getElementById("btnRemover").addEventListener("click", remover);
-    getData();
+// Aguarda o carregamento do DOM antes de inicializar
+document.addEventListener("DOMContentLoaded", async () => {
+    await createDB();
+    
+    const addItemButton = document.getElementById("addItem");
+    const itemInput = document.getElementById("itemInput");
+    const itemList = document.getElementById("itemList");
+
+    if (addItemButton) {
+        addItemButton.addEventListener("click", addData);
+    }
+
+    if (itemInput && itemList) {
+        getData();
+    }
 });
 
 async function getData() {
     if (!db) {
-        console.log("O banco de dados está fechado");
+        console.error("O banco de dados ainda não foi inicializado.");
         return;
     }
-    const tx = await db.transaction('shoppingList', 'readonly');
+    const tx = db.transaction('shoppingList', 'readonly');
     const store = tx.objectStore('shoppingList');
     const value = await store.getAll();
-    
+
     const itemList = document.getElementById("itemList");
-    itemList.innerHTML = "";
+    if (!itemList) return;
     
+    itemList.innerHTML = "";
+
     if (value.length > 0) {
         value.forEach(item => {
             const listItem = document.createElement("li");
             listItem.textContent = item.name;
-            
+
             const deleteButton = document.createElement("button");
             deleteButton.textContent = "❌";
             deleteButton.style.marginLeft = "10px";
             deleteButton.onclick = () => removerItem(item.id);
-            
+
             listItem.appendChild(deleteButton);
             itemList.appendChild(listItem);
         });
@@ -62,24 +72,37 @@ async function getData() {
 }
 
 async function addData() {
-    let name = document.getElementById("itemInput").value.trim();
+    const itemInput = document.getElementById("itemInput");
+    if (!itemInput) return;
+
+    let name = itemInput.value.trim();
     if (!name) return;
-    const tx = await db.transaction('shoppingList', 'readwrite');
+
+    if (!db) {
+        console.error("Banco de dados não inicializado.");
+        return;
+    }
+
+    const tx = db.transaction('shoppingList', 'readwrite');
     const store = tx.objectStore('shoppingList');
     try {
-        await store.add({ name: name });
+        await store.add({ name });
         await tx.done;
         console.log('Item adicionado com sucesso!');
-        document.getElementById("itemInput").value = "";
+        itemInput.value = "";
         getData();
     } catch (error) {
         console.error('Erro ao adicionar item:', error);
-        tx.abort();
     }
 }
 
 async function removerItem(id) {
-    const tx = await db.transaction('shoppingList', 'readwrite');
+    if (!db) {
+        console.error("Banco de dados não inicializado.");
+        return;
+    }
+
+    const tx = db.transaction('shoppingList', 'readwrite');
     const store = tx.objectStore('shoppingList');
     try {
         await store.delete(id);
@@ -87,6 +110,5 @@ async function removerItem(id) {
         getData();
     } catch (error) {
         console.error('Erro ao remover item:', error);
-        tx.abort();
     }
 }
