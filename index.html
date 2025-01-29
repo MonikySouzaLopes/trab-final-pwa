@@ -7,19 +7,18 @@
     <title>PWA - Lista de Compras Inteligente</title>
     <link rel="stylesheet" href="/CSS/style.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="/images/icon-256_ios.png">
     <link rel="icon" href="/images/camera_256.png" sizes="256x256">
     <meta name="theme-color" content="white">
-    <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico">
     <script type="module" src="js/main.js"></script>
     <script src="js/db.js"></script>
 </head>
 <body>
     <h1>Lista de Compras Inteligente 🛒</h1>
-    <input type="text" id="itemInput" placeholder="Adicionar item">
+    <input type="text" id="itemInput" placeholder="Adicionar item" autocomplete="off">
     <button id="addItem">Adicionar Item</button>
     <ul id="itemList"></ul>
+  
     
     <!-- Camera para escanear códigos de barras -->
     <main id="camera">

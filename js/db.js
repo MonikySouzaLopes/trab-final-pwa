@@ -27,8 +27,8 @@ async function createDB() {
 window.addEventListener("DOMContentLoaded", async event => {
     createDB();
     document.getElementById("addItem").addEventListener("click", addData);
-    document.getElementById("btnListar").addEventListener("click", getData);
     document.getElementById("btnRemover").addEventListener("click", remover);
+    getData();
 });
 
 async function getData() {
@@ -39,20 +39,30 @@ async function getData() {
     const tx = await db.transaction('shoppingList', 'readonly');
     const store = tx.objectStore('shoppingList');
     const value = await store.getAll();
-    if (value) {
-        const listagem = value.map(item => {
-            return `<div>
-                <p>Item: ${item.name}</p>
-            </div>`;
+    
+    const itemList = document.getElementById("itemList");
+    itemList.innerHTML = "";
+    
+    if (value.length > 0) {
+        value.forEach(item => {
+            const listItem = document.createElement("li");
+            listItem.textContent = item.name;
+            
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "❌";
+            deleteButton.style.marginLeft = "10px";
+            deleteButton.onclick = () => removerItem(item.id);
+            
+            listItem.appendChild(deleteButton);
+            itemList.appendChild(listItem);
         });
-        document.getElementById("itemList").innerHTML = listagem.join('');
     } else {
         console.log("Não há itens na lista de compras!");
     }
 }
 
 async function addData() {
-    let name = document.getElementById("itemInput").value;
+    let name = document.getElementById("itemInput").value.trim();
     if (!name) return;
     const tx = await db.transaction('shoppingList', 'readwrite');
     const store = tx.objectStore('shoppingList');
@@ -60,6 +70,7 @@ async function addData() {
         await store.add({ name: name });
         await tx.done;
         console.log('Item adicionado com sucesso!');
+        document.getElementById("itemInput").value = "";
         getData();
     } catch (error) {
         console.error('Erro ao adicionar item:', error);
@@ -67,18 +78,13 @@ async function addData() {
     }
 }
 
-async function remover() {
-    let name = document.getElementById("itemInput").value;
+async function removerItem(id) {
     const tx = await db.transaction('shoppingList', 'readwrite');
     const store = tx.objectStore('shoppingList');
     try {
-        let index = store.index('name');
-        let cursor = await index.openCursor(IDBKeyRange.only(name));
-        if (cursor) {
-            await store.delete(cursor.primaryKey);
-            console.log('Item removido com sucesso!');
-            getData();
-        }
+        await store.delete(id);
+        console.log('Item removido com sucesso!');
+        getData();
     } catch (error) {
         console.error('Erro ao remover item:', error);
         tx.abort();
